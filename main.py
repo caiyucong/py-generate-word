@@ -66,7 +66,7 @@ def main():
     generate_table_200w(document, left_item)
     document.add_paragraph()
     document.add_paragraph()
-    # 生成：实际利用外商直接投资 暂时不生成
+    # 生成：实际利用外商直接投资->暂时不生成
     '''
     paragraph, _ = generate_paragraph(document, 16, content='五、实际利用外商直接投资')
     first_indent(paragraph)
