@@ -14,37 +14,8 @@ def main(obj):
     result = init_data(obj)
     document = Document(args.template)
     init_doc(document)
-    chart_query_params = obj['chartQueryParams']
-    sign_project_info = obj['signProjectInfo']
-    sign_major_project_info = obj['signMajorProjectInfo']
-    start_project_info = obj['startProjectInfo']
-    operate_project_info = obj['operateProjectInfo']
-    sign_top_region_list = sign_major_project_info['topRegionList']
-    sign_top_str = "、".join(column_to_list('county', sign_top_region_list))
-    start_top_region_list = start_project_info['topRegionList']
-    start_top_str = "、".join(column_to_list('county', start_top_region_list))
-    operate_top_region_list = operate_project_info['topRegionList']
-    operate_top_str = "、".join(column_to_list('county', operate_top_region_list))
-    start_date = chart_query_params["startDate"]
-    end_date = chart_query_params["endDate"]
-    sign_project_info_title = generate_paragraph(document, 16,
-                                                 content=f'%b全市 {start_date} 至 '
-                                                         f'{end_date} &,招商引资新签约项目数&,%b '
-                                                         f'{sign_project_info["projectCount"] or 0} &,个。其中亿元以上制造业项目&,'
-                                                         f'%b {sign_project_info["billionManufactureProjectCount"] or 0}&,'
-                                                         f'个， 2000万元以上服务业项目 &,'
-                                                         f'%b{sign_project_info["millionServiceProjectCount"] or 0}&,'
-                                                         f'个， 总投资100亿以上项目 &,'
-                                                         f'%b{sign_project_info["billionAmountProjectCount"] or 0}&, '
-                                                         f'个。固定资产投资50亿以上项目 &,'
-                                                         f'%b{sign_project_info["billionBasicAmountProjectCount"] or 0}&, '
-                                                         f'个；引强项目 &,'
-                                                         f'%b{sign_project_info["excellentProjectCount"] or 0}&, '
-                                                         f'个，其中上市公司占 &,%b{sign_project_info["listedProjectCount"] or 0}'
-                                                         f'&, 个；新签约项目来源地主要集中在 &,%b{sign_project_info["projectRegion"]}&,。')
-    document.add_paragraph()
-    document.add_paragraph()
-    first_indent(sign_project_info_title)
+    # 生成：1-7月份全市新签约项目总体情况表
+    generate_paragraph(document, 16, WD_ALIGN_PARAGRAPH.CENTER, '1-7月份全市新签约项目总体情况表')
     generate_paragraph(document, 12, WD_ALIGN_PARAGRAPH.RIGHT, '单位：个')
     generate_table(document, '项目\n总体情况', ['', '新签约\n项目', '其中：\n制造业', '其中：\n服务业', '总投资\n（亿元）'],
                    result['sign_project_overview_list'], obj['signProjectOverviewList'],
@@ -74,17 +45,13 @@ def main(obj):
     document.add_paragraph()
     document.add_paragraph()
     # 生成：新签约重大项目
-    paragraph = generate_paragraph(document, 16, content='二、新签约重大项目')
+    paragraph, _ = generate_paragraph(document, 16, content='二、新签约重大项目')
     first_indent(paragraph)
-    paragraph = generate_paragraph(document, 16,
-                                   content=f'%b全市 {start_date} 至 {end_date}&,新签约重大项目 &,'
-                                           f'%b{sign_major_project_info["projectCount"] or 0}&, 个， '
-                                           f'其中固投5亿元以上制造业项目&,%b{sign_major_project_info["billionManufactureProjectCount"] or 0}&, 个， '
-                                           f'总投资5000万元以上服务业项目 &,%b{sign_major_project_info["millionServiceProjectCount"] or 0}&,个。'
-                                           f'按序时进度考核， &,%b{sign_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
+    paragraph, _ = generate_paragraph(document, 16,
+                                      content='全市新签约重大项目42个（固投5亿元以上制造业项目31个，总投资5000万元以上服务业项目11个）。其中，固投20亿元以上项目8个，固投50'
+                                              '亿元以上项目2 个（博望区宝明科技复合铜箔生产基地项目、市经开区正奇20GW高效N型电池片智能制造产业化项目）。')
     first_indent(paragraph)
     left_item = result['sign_major_project_county_list']
-    document.add_paragraph()
     document.add_paragraph()
     document.add_paragraph()
     generate_signed_major_table(document, left_item, obj['signMajorProjectCountyList'])
@@ -93,15 +60,14 @@ def main(obj):
     document.add_paragraph()
     document.add_paragraph()
     # 生成：亿元以上新开工项目
-    paragraph = generate_paragraph(document, 16, content='三、亿元以上新开工项目')
+    paragraph, _ = generate_paragraph(document, 16, content='三、亿元以上新开工项目')
     first_indent(paragraph)
-    paragraph = generate_paragraph(document, 16,
-                                   content=f'%b全市 {start_date} 至 {end_date}&,亿元以上新开工项目 &,'
-                                           f'%b{start_project_info["projectCount"] or 0}&, 个， '
-                                           f'同比{start_project_info["projectPastYearPer"]["label"]}&,'
-                                           f'%b{start_project_info["projectPastYearPer"]["value"] or 0}%&,, 完成全年目标任务 '
-                                           f'&,%b{start_project_info["completeLevel"] or 0}%&,。 按序时进度考核， '
-                                           f'&,%b{start_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
+    paragraph, _ = generate_paragraph(document, 16, content='全市亿元以上新开工项目210个，完成全年目标任务93.3%。	'
+                                                            '其中，20亿元以上项目17个，50亿元以上项目6'
+                                                            '个（含山县爱柯迪新能源汽车零部件智能制造项目、和县天能特种电池生产项目、'
+                                                            '当涂县新太高端合金新材料项目、雨山区国网国际绿色再制造项目、'
+                                                            '市经开区中南高科马鞍山创智科技园项目、市经开区正奇20GW高效N型电池片智能制造产业化项目）。'
+                                                            '新开工项目纳统106个，纳统率50.5%。')
     first_indent(paragraph)
     document.add_paragraph()
     document.add_paragraph()
@@ -112,13 +78,10 @@ def main(obj):
     document.add_paragraph()
     document.add_paragraph()
     # 生成：新投产固投2000万元以上制造业项目
-    paragraph = generate_paragraph(document, 16, content='四、新投产固投2000万元以上制造业项目')
+    paragraph, _ = generate_paragraph(document, 16, content='四、新投产固投2000万元以上制造业项目')
     first_indent(paragraph)
-    paragraph = generate_paragraph(document, 16,
-                                   content=f'%b全市 {start_date} 至 {end_date}&,新投产固投2000万元以上制造业项目 &,'
-                                           f'%b{operate_project_info["projectCount"] or 0}&, 个，完成全年目标任务的 &,'
-                                           f'%b{operate_project_info["completeLevel"] or 0}%&,。按序时进度考核， &,'
-                                           f'%b{operate_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
+    paragraph, _ = generate_paragraph(document, 16,
+                                      content='全市新投产固投2000万元以上制造业项目166个，完成全年目标任务的91.7%。')
     first_indent(paragraph)
     document.add_paragraph()
     document.add_paragraph()
@@ -170,14 +133,9 @@ def generate_remark(doc, font_size=11, alignment=WD_ALIGN_PARAGRAPH.LEFT, conten
 def generate_paragraph(doc, font_size=12, alignment=WD_ALIGN_PARAGRAPH.LEFT, content=''):
     paragraph = doc.add_paragraph()
     paragraph.paragraph_format.alignment = alignment
-    result = content.split('&,')
-    for item in result:
-        run = paragraph.add_run(item)
-        run.font.size = Pt(font_size)
-        if '%b' in item:
-            run.font.bold = True
-            run.text = run.text.replace('%b', '')
-    return paragraph
+    run = paragraph.add_run(content)
+    run.font.size = Pt(font_size)
+    return paragraph, run
 
 
 # 单元格居中对齐
