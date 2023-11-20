@@ -17,13 +17,15 @@ def main(obj):
     generate_table(document, '项目\n总体情况', ['', '新签约\n项目', '其中：\n制造业', '其中：\n服务业', '总投资\n（亿元）'],
                    result['sign_project_overview_list'], obj['signProjectOverviewList'],
                    ['projectCount', 'projectMadeCount', 'projectServiceCount', 'projectInvestAmountCount'])
-    generate_table(document, '重大项目', ['项目数', '其中：\n制造业', '其中：\n服务业', '其中：固投\n20-50亿元', '其中：固投\n50亿元以上'],
+    generate_table(document, '重大项目',
+                   ['项目数', '其中：\n制造业', '其中：\n服务业', '其中：固投\n20-50亿元', '其中：固投\n50亿元以上'],
                    result['sign_project_major_list'], obj['signProjectMajorList'],
                    ['projectMadeCount', 'projectServiceCount', 'projectBasicInvestAmountTwentyCount',
                     'projectBasicInvestAmountFiftyCount'])
     # 增加段落 相当于换行
     document.add_paragraph()
-    generate_table(document, '优强项目', ['投资主体', '境内外\n500强\n含子公司', '上市公司', '独角兽或瞪羚企业', '专精特新企业\n（国家级）'],
+    generate_table(document, '优强项目',
+                   ['投资主体', '境内外\n500强\n含子公司', '上市公司', '独角兽或瞪羚企业', '专精特新企业\n（国家级）'],
                    result['sign_project_excellent_company_list'], obj['signProjectExcellentCompanyList'],
                    ['fiveHundredTopCompanyCount', 'listedCompanyCount', 'gazelleTagCompanyCount',
                     'specializedTagCompanyCount'])
@@ -32,7 +34,8 @@ def main(obj):
                    result['sign_project_county_list'], obj['signProjectCountyList'],
                    ['projectCount', 'projectCountPer%', 'projectAmountCount', 'projectAmountPer%'])
     generate_remark(document, content='1、新签约项目含制造业亿元以上投资项目、服务业2000万元以上投资项目；')
-    generate_remark(document, content='2、制造业重大项目为固投5亿元以上投资项目，服务业重大项目为总投资5000万元以上投资项目；')
+    generate_remark(document,
+                    content='2、制造业重大项目为固投5亿元以上投资项目，服务业重大项目为总投资5000万元以上投资项目；')
     generate_remark(document,
                     content='3、境内外500强企业（世界500强、中国500强、民营500强）含子公司，上市公司、独角兽企业、瞪羚企业、专精特新企业（国家级）为直投。')
     document.add_paragraph()
@@ -65,15 +68,17 @@ def main(obj):
     first_indent(paragraph)
     document.add_paragraph()
     document.add_paragraph()
-    generate_table_2r_4c(document, ['新开工项目', '纳统率'], ['开工数（个）', '完成进度', '纳统数（个）', '纳统率'], left_item,
+    generate_table_2r_4c(document, ['新开工项目', '纳统率'], ['开工数（个）', '完成进度', '纳统数（个）', '纳统率'],
+                         left_item,
                          '载体\\指标', ['projectCount', 'projectCountCompletePer%', 'synchronizationCount',
-                                    'synchronizationCountPer%'], obj['startProjectCountyList'])
+                                        'synchronizationCountPer%'], obj['startProjectCountyList'])
     document.add_paragraph()
     document.add_paragraph()
     # 生成：新投产固投2000万元以上制造业项目
     paragraph, _ = generate_paragraph(document, 16, content='四、新投产固投2000万元以上制造业项目')
     first_indent(paragraph)
-    paragraph, _ = generate_paragraph(document, 16, content='全市新投产固投2000万元以上制造业项目166个，完成全年目标任务的91.7%。')
+    paragraph, _ = generate_paragraph(document, 16,
+                                      content='全市新投产固投2000万元以上制造业项目166个，完成全年目标任务的91.7%。')
     first_indent(paragraph)
     document.add_paragraph()
     document.add_paragraph()
@@ -357,9 +362,11 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=6379, type=int, help='redis port')
     parser.add_argument('-pw', '--password', default=None, type=str, help='redis password')
     parser.add_argument('-k', '--key', default=None, type=str, help='redis key')
+    parser.add_argument('-f', '--filepath', default=None, type=str, help='file path')
+    parser.add_argument('-n', '--filename', default=None, type=str, help='filename')
     # 解析命令行参数
     args = parser.parse_args()
-    # 获取redis中的值
-    temp = init_redis_data(args.key)
-    val = json.loads(temp)
-    main(val)
+    if args.key is not None:
+        # 获取redis中的值
+        val = init_redis_data(args.key)
+        main(val)
