@@ -1,3 +1,4 @@
+# encoding:UTF-8
 import argparse
 import json
 
@@ -10,7 +11,7 @@ from docx.shared import Pt, Inches
 
 def main(obj):
     result = init_data(obj)
-    document = Document(args.filepath)
+    document = Document(args.template)
     # 生成：1-7月份全市新签约项目总体情况表
     generate_paragraph(document, 16, WD_ALIGN_PARAGRAPH.CENTER, '1-7月份全市新签约项目总体情况表')
     generate_paragraph(document, 12, WD_ALIGN_PARAGRAPH.RIGHT, '单位：个')
@@ -362,7 +363,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=6379, type=int, help='redis port')
     parser.add_argument('-pw', '--password', default=None, type=str, help='redis password')
     parser.add_argument('-k', '--key', default=None, type=str, help='redis key')
-    parser.add_argument('-f', '--filepath', default=None, type=str, help='filepath 模板的路径')
+    parser.add_argument('-t', '--template', default=None, type=str, help='template 模板的路径')
     parser.add_argument('-n', '--filename', default=None, type=str, help='filename 保存的文件路径')
     # 解析命令行参数
     args = parser.parse_args()
