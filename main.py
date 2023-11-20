@@ -10,7 +10,7 @@ from docx.shared import Pt, Inches
 
 def main(obj):
     result = init_data(obj)
-    document = Document('考核专报模板.docx')
+    document = Document(args.filepath)
     # 生成：1-7月份全市新签约项目总体情况表
     generate_paragraph(document, 16, WD_ALIGN_PARAGRAPH.CENTER, '1-7月份全市新签约项目总体情况表')
     generate_paragraph(document, 12, WD_ALIGN_PARAGRAPH.RIGHT, '单位：个')
@@ -86,7 +86,7 @@ def main(obj):
     document.add_paragraph()
     document.add_paragraph()
     # 保存word文件
-    document.save('test.docx')
+    document.save(args.filename)
 
 
 # 首列缩进
@@ -362,11 +362,12 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=6379, type=int, help='redis port')
     parser.add_argument('-pw', '--password', default=None, type=str, help='redis password')
     parser.add_argument('-k', '--key', default=None, type=str, help='redis key')
-    parser.add_argument('-f', '--filepath', default=None, type=str, help='file path')
-    parser.add_argument('-n', '--filename', default=None, type=str, help='filename')
+    parser.add_argument('-f', '--filepath', default=None, type=str, help='filepath 模板的路径')
+    parser.add_argument('-n', '--filename', default=None, type=str, help='filename 保存的文件路径')
     # 解析命令行参数
     args = parser.parse_args()
     if args.key is not None:
         # 获取redis中的值
         val = init_redis_data(args.key)
         main(val)
+        print('success')
