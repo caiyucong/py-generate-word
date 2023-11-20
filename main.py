@@ -1,6 +1,7 @@
 # encoding:UTF-8
 import argparse
 import json
+from datetime import datetime
 
 import redis
 from docx import Document
@@ -12,6 +13,7 @@ from docx.shared import Pt, Inches
 def main(obj):
     result = init_data(obj)
     document = Document(args.template)
+    init_doc(document)
     # 生成：1-7月份全市新签约项目总体情况表
     generate_paragraph(document, 16, WD_ALIGN_PARAGRAPH.CENTER, '1-7月份全市新签约项目总体情况表')
     generate_paragraph(document, 12, WD_ALIGN_PARAGRAPH.RIGHT, '单位：个')
@@ -88,6 +90,26 @@ def main(obj):
     document.add_paragraph()
     # 保存word文件
     document.save(args.filename)
+
+
+def clone_paragraph_style(original_paragraph, new_paragraph):
+    new_paragraph.style = original_paragraph.style
+    for run in original_paragraph.runs:
+        new_run = new_paragraph.add_run(run.text)
+        new_run.bold = run.bold
+        new_run.italic = run.italic
+
+
+# 初始化文档
+def init_doc(doc):
+    current_date = datetime.now()
+    formatted_date = current_date.strftime('%Y年%m月%d日')
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if "${date}" in cell.text:
+                    cell.text = cell.text.replace("${date}", formatted_date)
+                    cell_alignment(cell)
 
 
 # 首列缩进
