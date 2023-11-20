@@ -1,23 +1,36 @@
+import argparse
+import json
+
+import redis
 from docx import Document
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt, Inches
 
 
-def main():
+def main(obj):
+    result = init_data(obj)
     document = Document('考核专报模板.docx')
     # 生成：1-7月份全市新签约项目总体情况表
     generate_paragraph(document, 16, WD_ALIGN_PARAGRAPH.CENTER, '1-7月份全市新签约项目总体情况表')
     generate_paragraph(document, 12, WD_ALIGN_PARAGRAPH.RIGHT, '单位：个')
     generate_table(document, '项目\n总体情况', ['', '新签约\n项目', '其中：\n制造业', '其中：\n服务业', '总投资\n（亿元）'],
-                   ['项目数', '新引进项目', '再投资项目'])
-    generate_table(document, '重大项目', ['项目数', '其中：\n制造业', '其中：\n服务业', '其中：固投\n20-50亿元', '其中：固投\n50亿元以上'], ['42'])
+                   result['sign_project_overview_list'], obj['signProjectOverviewList'],
+                   ['projectCount', 'projectMadeCount', 'projectServiceCount', 'projectInvestAmountCount'])
+    generate_table(document, '重大项目', ['项目数', '其中：\n制造业', '其中：\n服务业', '其中：固投\n20-50亿元', '其中：固投\n50亿元以上'],
+                   result['sign_project_major_list'], obj['signProjectMajorList'],
+                   ['projectMadeCount', 'projectServiceCount', 'projectBasicInvestAmountTwentyCount',
+                    'projectBasicInvestAmountFiftyCount'])
     # 增加段落 相当于换行
     document.add_paragraph()
-    generate_table(document, '优强项目', ['投资主体', '境内外\n500强\n含子公司', '上市公司', '独角兽或瞪羚企业', '专精特新企业\n（国家级）'], ['26'])
+    generate_table(document, '优强项目', ['投资主体', '境内外\n500强\n含子公司', '上市公司', '独角兽或瞪羚企业', '专精特新企业\n（国家级）'],
+                   result['sign_project_excellent_company_list'], obj['signProjectExcellentCompanyList'],
+                   ['fiveHundredTopCompanyCount', 'listedCompanyCount', 'gazelleTagCompanyCount',
+                    'specializedTagCompanyCount'])
     document.add_paragraph()
     generate_table(document, '项目来源地', ['', '个数', '个数占比', '总投资\n（亿元）', '投资占比'],
-                   ['长三角', '珠三角', '京津冀', '省内', '境外（外资）', '其他'])
+                   result['sign_project_county_list'], obj['signProjectCountyList'],
+                   ['projectCount', 'projectCountPer%', 'projectAmountCount', 'projectAmountPer%'])
     generate_remark(document, content='1、新签约项目含制造业亿元以上投资项目、服务业2000万元以上投资项目；')
     generate_remark(document, content='2、制造业重大项目为固投5亿元以上投资项目，服务业重大项目为总投资5000万元以上投资项目；')
     generate_remark(document,
@@ -32,10 +45,10 @@ def main():
                                       content='全市新签约重大项目42个（固投5亿元以上制造业项目31个，总投资5000万元以上服务业项目11个）。其中，固投20亿元以上项目8个，固投50'
                                               '亿元以上项目2 个（博望区宝明科技复合铜箔生产基地项目、市经开区正奇20GW高效N型电池片智能制造产业化项目）。')
     first_indent(paragraph)
-    left_item = ['全  市', '含山县', '和  县', '当涂县', '花山区', '雨山区', '博望区', '市经开区', '慈湖高新区', '郑蒲港新区']
+    left_item = result['sign_major_project_county_list']
     document.add_paragraph()
     document.add_paragraph()
-    generate_signed_major_table(document, left_item)
+    generate_signed_major_table(document, left_item, obj['signMajorProjectCountyList'])
     document.add_paragraph()
     document.add_paragraph()
     document.add_paragraph()
@@ -53,7 +66,8 @@ def main():
     document.add_paragraph()
     document.add_paragraph()
     generate_table_2r_4c(document, ['新开工项目', '纳统率'], ['开工数（个）', '完成进度', '纳统数（个）', '纳统率'], left_item,
-                         '载体\\指标')
+                         '载体\\指标', ['projectCount', 'projectCountCompletePer%', 'synchronizationCount',
+                                    'synchronizationCountPer%'], obj['startProjectCountyList'])
     document.add_paragraph()
     document.add_paragraph()
     # 生成：新投产固投2000万元以上制造业项目
@@ -63,21 +77,9 @@ def main():
     first_indent(paragraph)
     document.add_paragraph()
     document.add_paragraph()
-    generate_table_200w(document, left_item)
+    generate_table_2000w(document, left_item, obj['operateProjectCountyList'])
     document.add_paragraph()
     document.add_paragraph()
-    # 生成：实际利用外商直接投资->暂时不生成
-    '''
-    paragraph, _ = generate_paragraph(document, 16, content='五、实际利用外商直接投资')
-    first_indent(paragraph)
-    paragraph, _ = generate_paragraph(document, 16,
-                                      content='全市实际到位外商直接投资11907万美元（新增到资10804万美元），'
-                                              '总量居全省第4位，同比增长1.5%。新设外资企业27家，同比增长68.8%。')
-    document.add_paragraph()
-    document.add_paragraph()
-    generate_table_2r_4c(document, ['到位资金', '新设外资企业'], ['新增到资总额（万美元）', '完成进度', '新设外企数（个）', '完成进度'], left_item, '载体\\指标')
-    first_indent(paragraph)
-    '''
     # 保存word文件
     document.save('test.docx')
 
@@ -117,7 +119,9 @@ def cell_alignment(cell):
 
 
 # 生成新签约重大项目
-def generate_signed_major_table(doc, left_name=None, style='Table Grid'):
+def generate_signed_major_table(doc, left_name=None, table_data=None, style='Table Grid'):
+    if table_data is None:
+        table_data = []
     if left_name is None:
         left_name = []
     row = 3 + len(left_name)
@@ -167,9 +171,21 @@ def generate_signed_major_table(doc, left_name=None, style='Table Grid'):
         item.text = value
         item.width = Inches(1.5)
         cell_alignment(item)
+    column_list = ['projectCount', 'projectCountCompletePer', 'fiveBasicAmountCount', 'twentyBasicAmountCount',
+                   'fiftyBasicAmountCount', 'zeroFiveAmountCount']
+    for index, obj in enumerate(table_data):
+        item = table.rows[index + 3]
+        for i, o in enumerate(column_list):
+            e = item.cells[1 + i]
+            e.text = str(obj[o])
+            if o == 'projectCountCompletePer':
+                e.text += '%'
+            cell_alignment(e)
 
 
-def generate_table_200w(doc, left_title=None, style='Table Grid'):
+def generate_table_2000w(doc, left_title=None, table_data=None, style='Table Grid'):
+    if table_data is None:
+        table_data = []
     if left_title is None:
         left_title = []
     row = 2 + len(left_title)
@@ -193,12 +209,18 @@ def generate_table_200w(doc, left_title=None, style='Table Grid'):
         item = table.rows[index + 2].cells[0]
         item.text = value
         cell_alignment(item)
+    column_list = ['projectCount', 'projectCountCompletePer%']
+    init_table_data(2, 1, table_data, column_list, table)
     set_row_height(table, 0.6)
 
 
 # 生成第一行两列，第二行四列的表格
 def generate_table_2r_4c(doc, header_title=None, child_header_title=None, left_title=None, left_top="",
-                         style='Table Grid'):
+                         column_name=None, table_data=None, style='Table Grid'):
+    if table_data is None:
+        table_data = []
+    if column_name is None:
+        column_name = []
     if left_title is None:
         left_title = []
     if child_header_title is None:
@@ -231,14 +253,36 @@ def generate_table_2r_4c(doc, header_title=None, child_header_title=None, left_t
         item = table.rows[index + 2].cells[0]
         item.text = value
         cell_alignment(item)
+    init_table_data(2, 1, table_data, column_name, table)
+
+
+def init_table_data(rows, column, table_data, column_name, table):
+    for index, obj in enumerate(table_data):
+        item = table.rows[index + rows]
+        for i, o in enumerate(column_name):
+            e = item.cells[column + i]
+            if '%' in o:
+                o = o.replace('%', '')
+                cell_text = f'{str(obj[o])}%'
+            else:
+                cell_text = str(obj[o])
+            e.text = cell_text
+            cell_alignment(e)
 
 
 # 生成表格
-def generate_table(doc, left_text='', header=None, left_item=None, style='Table Grid'):
+def generate_table(doc, left_text='', header=None, left_item=None, table_data=None, column_name=None,
+                   style='Table Grid'):
+    if column_name is None:
+        column_name = []
+    if table_data is None:
+        table_data = []
     if left_item is None:
         left_item = []
     if header is None:
         header = []
+    if len(column_name) != 0 and len(header) - 1 != len(column_name):
+        return
     # 添加表格
     row = len(left_item) + 1
     column = len(header) + 1
@@ -258,8 +302,9 @@ def generate_table(doc, left_text='', header=None, left_item=None, style='Table 
     # 生成行标题
     for index, value in enumerate(left_item):
         item = table.rows[index + 1].cells[1]
-        item.text = value
+        item.text = str(value)
         cell_alignment(item)
+    init_table_data(1, 2, table_data, column_name, table)
     set_row_height(table)
     return table
 
@@ -271,5 +316,50 @@ def set_row_height(table, height=0.4):
         item.height = Inches(height)
 
 
+# 将字典的某个字段转为
+def column_to_list(column, arr):
+    new_arr = []
+    for item in arr:
+        new_arr.append(item[column])
+    return new_arr
+
+
+# 初始化数据 获取做最左列的值
+def init_data(obj):
+    sign_project_overview_list = column_to_list('projectCategory', obj['signProjectOverviewList'])
+    sign_project_major_list = column_to_list('projectCount', obj['signProjectMajorList'])
+    sign_project_excellent_company_list = column_to_list('excellentProjectCount',
+                                                         obj['signProjectExcellentCompanyList'])
+    sign_project_county_list = column_to_list('area', obj['signProjectCountyList'])
+    sign_major_project_county_list = column_to_list('county', obj['signMajorProjectCountyList'])
+    return {
+        "sign_project_overview_list": sign_project_overview_list,
+        "sign_project_major_list": sign_project_major_list,
+        "sign_project_excellent_company_list": sign_project_excellent_company_list,
+        "sign_major_project_county_list": sign_major_project_county_list,
+        "sign_project_county_list": sign_project_county_list
+    }
+
+
+# 初始化reid
+def init_redis_data(key):
+    r = redis.StrictRedis(host=args.host, port=args.port, decode_responses=True, password=args.password)
+    value = r.get(key)
+    json_str = value.replace("\\", "")
+    return json.loads(json_str[1:-1])
+
+
 if __name__ == '__main__':
-    main()
+    # 创建 ArgumentParser 对象
+    parser = argparse.ArgumentParser(description='Description of your program', add_help=False)
+    # 添加参数
+    parser.add_argument('-h', '--host', default='localhost', type=str, help='redis host')
+    parser.add_argument('-p', '--port', default=6379, type=int, help='redis port')
+    parser.add_argument('-pw', '--password', default=None, type=str, help='redis password')
+    parser.add_argument('-k', '--key', default=None, type=str, help='redis key')
+    # 解析命令行参数
+    args = parser.parse_args()
+    # 获取redis中的值
+    temp = init_redis_data(args.key)
+    val = json.loads(temp)
+    main(val)
