@@ -105,13 +105,17 @@ def main(obj):
     # 生成：亿元以上新开工项目
     paragraph = generate_paragraph(document, 16, content='三、亿元以上新开工项目')
     first_indent(paragraph)
-    projects_100_million_content = (f'%b{selected_city_str or "全市"} {start_date} 至 {end_date}&,亿元以上新开工项目 &,'
-                                    f'%b{start_project_info["projectCount"] or 0}&, 个，')
+    projects_100_million_content = (
+        f'%b{selected_city_str or "全市"} {start_date} 至 {end_date}&,亿元以上新开工项目 &,'
+        f'%b{start_project_info["projectCount"] or 0}&, 个，'
+    )
     if start_project_info["projectPastYearPer"]["label"] != '暂无':
-        projects_100_million_content += '同比{start_project_info["projectPastYearPer"]["label"]}&,'
-    projects_100_million_content += (f'%b{start_project_info["projectPastYearPer"]["value"] or 0}%&,, 完成全年目标任务 '
-                                     f'&,%b{start_project_info["completeLevel"] or 0}%&,。 按序时进度考核， '
-                                     f'&,%b{start_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
+        projects_100_million_content += (
+            '同比{start_project_info["projectPastYearPer"]["label"]}&,'
+            '%b{start_project_info["projectPastYearPer"]["value"] or 0}%&,, ')
+    projects_100_million_content += (
+        f'完成全年目标任务 &,%b{start_project_info["completeLevel"] or 0}%&,。 按序时进度考核， '
+        f'&,%b{start_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
     paragraph = generate_paragraph(
         document, 16,
         content=projects_100_million_content)
