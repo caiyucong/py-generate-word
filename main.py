@@ -111,8 +111,8 @@ def main(obj):
     )
     if start_project_info["projectPastYearPer"]["label"] != '暂无':
         projects_100_million_content += (
-            '同比{start_project_info["projectPastYearPer"]["label"]}&,'
-            '%b{start_project_info["projectPastYearPer"]["value"] or 0}%&,, ')
+            f'同比{start_project_info["projectPastYearPer"]["label"]}&,'
+            f'%b{start_project_info["projectPastYearPer"]["value"] or 0}%&,, ')
     projects_100_million_content += (
         f'完成全年目标任务 &,%b{start_project_info["completeLevel"] or 0}%&,。 按序时进度考核， '
         f'&,%b{start_top_str}&, 分别居县、区、开发园区第&,%b1&,位。')
