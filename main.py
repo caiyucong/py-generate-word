@@ -433,7 +433,7 @@ def init_data(obj):
 
 # 初始化reid
 def init_redis_data(key):
-    r = redis.StrictRedis(host=args.host, port=args.port, decode_responses=True, password=args.password)
+    r = redis.StrictRedis(host=args.host, port=args.port, decode_responses=True, password=args.password, db=args.d)
     value = r.get(key)
     json_str = value.replace("\\", "")
     return json.loads(json_str[1:-1])
@@ -449,6 +449,7 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--key', default=None, type=str, help='redis key')
     parser.add_argument('-t', '--template', default=None, type=str, help='template 模板的路径')
     parser.add_argument('-n', '--filename', default=None, type=str, help='filename 保存的文件路径')
+    parser.add_argument('-d', '--database', default=None, type=str, help='database 数据库索引')
     # 解析命令行参数
     args = parser.parse_args()
     if args.key is not None:
